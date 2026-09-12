@@ -6,6 +6,11 @@
 
 <h1 class="h3 mb-4">Daftar Mahasiswa</h1>
 
+<x-kartu-info judul="Informasi">
+    Data pada halaman ini masih berupa array statis. Pada modul
+    berikutnya data akan diambil dari basis data.
+</x-kartu-info>
+
 <table class="table table-bordered bg-white">
     <thead>
         <tr>

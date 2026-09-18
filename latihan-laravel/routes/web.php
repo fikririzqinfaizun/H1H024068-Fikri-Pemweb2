@@ -1,31 +1,13 @@
 <?php
 
-use App\Http\Controllers\MatakuliahController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\MahasiswaWebController;
 
-Route::get('/salam', function () {
-    return 'Selamat datang di Pemrograman Web II';
-});
-
-Route::get('/mahasiswa/{nim}', function (string $nim) {
-    return 'NAMA SAYA FIKRI DENGAN NIM ' . $nim;
-});
-
-Route::get('/semester/{angka}', function (int $angka) {
-    return '6 ' . $angka;
-})->whereNumber('6');
-
-Route::get('/data-mahasiswa', [MahasiswaController::class, 'index'])
-    ->name('mahasiswa.index');
-
-Route::get('/data-mahasiswa/{nim}', [MahasiswaController::class, 'show'])
-    ->name('mahasiswa.show');
-
-Route::get('/cari-mahasiswa', [MahasiswaController::class, 'cari']);
-
-Route::get('/data-matakuliah', [MatakuliahController::class, 'index'])
-    ->name('matakuliah.index');
-
-Route::get('/data-matakuliah/{kode}', [MatakuliahController::class, 'show'])
-    ->name('matakuliah.show');
+Route::get('/mahasiswa-data', [MahasiswaWebController::class, 'index'])
+    ->name('mahasiswa.data');
+Route::get('/mahasiswa/{id}', [MahasiswaWebController::class, 'show'])
+    ->name('mahasiswa.detail');
+Route::get('/mahasiswa-top', [MahasiswaWebController::class, 'topTeknikKomputer'])
+    ->name('mahasiswa.top');
+Route::get('/mahasiswa/{id}/matakuliah', [MahasiswaWebController::class, 'matakuliah'])
+    ->name('mahasiswa.matakuliah');

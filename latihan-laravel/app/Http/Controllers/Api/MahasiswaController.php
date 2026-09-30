@@ -12,27 +12,24 @@ use Illuminate\Http\Request;
 
 class MahasiswaController extends Controller
 {
+    /**
+     * Menampilkan daftar mahasiswa.
+     */
     public function index(Request $request)
     {
         $kueri = Mahasiswa::query()->with('programStudi');
 
+        // Pencarian berdasarkan nama atau NIM
         if ($request->filled('cari')) {
             $kataKunci = $request->query('cari');
 
             $kueri->where(function ($sub) use ($kataKunci) {
-                $sub->where(
-                    'nama',
-                    'like',
-                    '%' . $kataKunci . '%'
-                )
-                ->orWhere(
-                    'nim',
-                    'like',
-                    '%' . $kataKunci . '%'
-                );
+                $sub->where('nama', 'like', '%' . $kataKunci . '%')
+                    ->orWhere('nim', 'like', '%' . $kataKunci . '%');
             });
         }
 
+        // Filter berdasarkan angkatan
         if ($request->filled('angkatan')) {
             $kueri->where(
                 'angkatan',
@@ -40,6 +37,7 @@ class MahasiswaController extends Controller
             );
         }
 
+        // Filter berdasarkan program studi
         if ($request->filled('program_studi_id')) {
             $kueri->where(
                 'program_studi_id',
@@ -47,6 +45,7 @@ class MahasiswaController extends Controller
             );
         }
 
+        // Pengurutan data
         $urutan = $request->query('urut', 'nama');
         $arah = $request->query('arah', 'asc');
 
@@ -64,6 +63,7 @@ class MahasiswaController extends Controller
             );
         }
 
+        // Jumlah data per halaman maksimal 100
         $perHalaman = min(
             $request->integer('per_halaman', 10),
             100
@@ -74,6 +74,9 @@ class MahasiswaController extends Controller
         );
     }
 
+    /**
+     * Menyimpan data mahasiswa baru.
+     */
     public function store(
         StoreMahasiswaRequest $request
     ): JsonResponse {
@@ -90,15 +93,23 @@ class MahasiswaController extends Controller
         ], 201);
     }
 
+    /**
+     * Menampilkan satu data mahasiswa.
+     */
     public function show(
         Mahasiswa $mahasiswa
     ): JsonResponse {
+        $mahasiswa->load('programStudi');
+
         return response()->json([
-            'tes' => 'SHOW BERHASIL',
-            'id' => $mahasiswa->id,
+            'sukses' => true,
+            'data' => new MahasiswaResource($mahasiswa),
         ]);
     }
 
+    /**
+     * Memperbarui data mahasiswa.
+     */
     public function update(
         UpdateMahasiswaRequest $request,
         Mahasiswa $mahasiswa
@@ -116,6 +127,9 @@ class MahasiswaController extends Controller
         ]);
     }
 
+    /**
+     * Menghapus data mahasiswa.
+     */
     public function destroy(
         Mahasiswa $mahasiswa
     ): JsonResponse {

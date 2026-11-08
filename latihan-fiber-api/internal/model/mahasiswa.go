@@ -1,37 +1,31 @@
 package model
 
-type Mahasiswa struct {
-	ID       int     `json:"id"`
-	NIM      string  `json:"nim"`
-	Nama     string  `json:"nama"`
-	Prodi    string  `json:"prodi"`
-	Angkatan int     `json:"angkatan"`
-	IPK      float64 `json:"ipk"`
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type ProgramStudi struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Kode      string    `gorm:"size:10;uniqueIndex" json:"kode"`
+	Nama      string    `gorm:"size:100" json:"nama"`
+	Jenjang   string    `gorm:"size:10" json:"jenjang"`
+	CreatedAt time.Time `json:"dibuat_pada"`
+	UpdatedAt time.Time `json:"diubah_pada"`
 }
 
-var Daftar = []Mahasiswa{
-	{
-		ID:       1,
-		NIM:      "H1H024001",
-		Nama:     "Andi Pratama",
-		Prodi:    "Teknik Komputer",
-		Angkatan: 2024,
-		IPK:      3.65,
-	},
-	{
-		ID:       2,
-		NIM:      "H1H023002",
-		Nama:     "Bunga Lestari",
-		Prodi:    "Teknik Komputer",
-		Angkatan: 2023,
-		IPK:      3.80,
-	},
-	{
-		ID:       3,
-		NIM:      "H1H023003",
-		Nama:     "Citra Permata",
-		Prodi:    "Teknik Informatika",
-		Angkatan: 2023,
-		IPK:      3.45,
-	},
+type Mahasiswa struct {
+	ID             uint           `gorm:"primaryKey" json:"id"`
+	ProgramStudiID uint           `gorm:"index" json:"program_studi_id"`
+	ProgramStudi   *ProgramStudi  `gorm:"foreignKey:ProgramStudiID" json:"program_studi,omitempty"`
+	Nim            string         `gorm:"size:20;uniqueIndex" json:"nim"`
+	Nama           string         `gorm:"size:100" json:"nama"`
+	Email          string         `gorm:"size:100;uniqueIndex" json:"email"`
+	Angkatan       int            `json:"angkatan"`
+	Ipk            float64        `gorm:"type:decimal(4,2)" json:"ipk"`
+	Aktif          bool           `gorm:"default:true" json:"aktif"`
+	CreatedAt      time.Time      `json:"dibuat_pada"`
+	UpdatedAt      time.Time      `json:"diubah_pada"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 }

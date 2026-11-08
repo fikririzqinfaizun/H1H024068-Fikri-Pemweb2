@@ -3,57 +3,31 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/logger"
-	"github.com/gofiber/fiber/v3/middleware/recover"
-	"github.com/gofiber/fiber/v3/middleware/requestid"
-
 	"latihan-fiber/internal/config"
-	"latihan-fiber/internal/middleware"
 	"latihan-fiber/internal/router"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 func main() {
 	// Memuat konfigurasi aplikasi
 	cfg := config.LoadConfig()
 
-	// Membuat instance Fiber
-	app := fiber.New(fiber.Config{
-		AppName: cfg.AppName,
-	})
+	// Menghubungkan aplikasi ke database MySQL
+	config.KoneksiDatabase(cfg)
 
-	// Middleware bawaan Fiber
-	app.Use(logger.New())
-	app.Use(recover.New())
-	app.Use(requestid.New())
+	// Menjalankan migrasi database
+	config.Migrasi()
 
-	// Middleware buatan sendiri
-	app.Use(middleware.WaktuProses)
+	// Memasukkan data awal program studi
+	config.DataAwal()
 
-	// Global error handler
-	app.Use(func(c fiber.Ctx) error {
-		err := c.Next()
+	// Membuat aplikasi Fiber
+	app := fiber.New()
 
-		if err != nil {
-			code := fiber.StatusInternalServerError
-
-			if e, ok := err.(*fiber.Error); ok {
-				code = e.Code
-			}
-
-			return c.Status(code).JSON(fiber.Map{
-				"error": err.Error(),
-			})
-		}
-
-		return nil
-	})
-
-	// Mendaftarkan seluruh route
+	// Mengatur routing API
 	router.SetupRoutes(app)
 
 	// Menjalankan server
-	log.Printf("%s berjalan pada port %s", cfg.AppName, cfg.AppPort)
-
 	log.Fatal(app.Listen(":" + cfg.AppPort))
 }

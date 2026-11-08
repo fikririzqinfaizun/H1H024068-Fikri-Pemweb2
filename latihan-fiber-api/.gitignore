@@ -1,3 +1,10 @@
+# Folder proyek lama
 latihan-fiber
+
+# File executable
 *.exe
+
+# Environment dan konfigurasi rahasia
 .env
+.env.*
+!.env.example

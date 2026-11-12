@@ -11,10 +11,13 @@ func Migrasi() {
 		&model.ProgramStudi{},
 		&model.Mahasiswa{},
 		&model.Matakuliah{},
+		&model.Pengguna{},
+		&model.TokenBlacklist{},
 	)
 	if err != nil {
 		log.Fatal("Gagal menjalankan migrasi: ", err)
 	}
+
 	log.Println("Migrasi selesai")
 }
 

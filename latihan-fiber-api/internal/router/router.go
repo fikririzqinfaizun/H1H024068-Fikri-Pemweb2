@@ -8,6 +8,10 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
+	// =====================================================
+	// ENDPOINT PUBLIK
+	// =====================================================
+
 	// Endpoint status API
 	app.Get("/api/status", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -16,8 +20,34 @@ func SetupRoutes(app *fiber.App) {
 		})
 	})
 
-	// Grup endpoint mahasiswa yang dilindungi API Key
-	mahasiswa := app.Group("/api/mahasiswa", middleware.KunciApi())
+	// Endpoint registrasi pengguna
+	app.Post("/api/auth/registrasi", handler.Registrasi)
+
+	// Endpoint login pengguna
+	app.Post("/api/auth/login", handler.Login)
+
+	// =====================================================
+	// ENDPOINT AUTENTIKASI JWT
+	// =====================================================
+
+	// Grup endpoint yang memerlukan token JWT
+	autentikasi := app.Group("/api", middleware.Autentikasi())
+
+	// Endpoint profil pengguna yang sedang login
+	autentikasi.Get("/auth/profil", handler.Profil)
+
+	// Endpoint memperbarui token JWT
+	autentikasi.Post("/auth/segarkan", handler.SegarkanToken)
+
+	// Endpoint logout untuk mencabut token JWT
+	autentikasi.Post("/auth/logout", handler.Logout)
+
+	// =====================================================
+	// ENDPOINT MAHASISWA
+	// =====================================================
+
+	// Seluruh endpoint mahasiswa memerlukan JWT
+	mahasiswa := autentikasi.Group("/mahasiswa")
 
 	// Endpoint daftar mahasiswa
 	mahasiswa.Get("/", handler.DaftarMahasiswa)
@@ -25,20 +55,43 @@ func SetupRoutes(app *fiber.App) {
 	// Endpoint detail mahasiswa berdasarkan ID
 	mahasiswa.Get("/:id", handler.DetailMahasiswa)
 
-	// Endpoint tambah mahasiswa
-	mahasiswa.Post("/", handler.BuatMahasiswa)
+	// Endpoint tambah mahasiswa: admin dan dosen
+	mahasiswa.Post(
+		"/",
+		middleware.HanyaPeran("admin", "dosen"),
+		handler.BuatMahasiswa,
+	)
 
-	// Endpoint memperbarui mahasiswa
-	mahasiswa.Put("/:id", handler.PerbaruiMahasiswa)
+	// Endpoint memperbarui mahasiswa: admin dan dosen
+	mahasiswa.Put(
+		"/:id",
+		middleware.HanyaPeran("admin", "dosen"),
+		handler.PerbaruiMahasiswa,
+	)
 
-	// Endpoint menghapus mahasiswa
-	mahasiswa.Delete("/:id", handler.HapusMahasiswa)
+	// Endpoint menghapus mahasiswa: hanya admin
+	mahasiswa.Delete(
+		"/:id",
+		middleware.HanyaPeran("admin"),
+		handler.HapusMahasiswa,
+	)
 
-	// Endpoint memulihkan mahasiswa yang sudah dihapus
-	mahasiswa.Post("/:id/pulihkan", handler.PulihkanMahasiswa)
+	// Endpoint memulihkan mahasiswa: hanya admin
+	mahasiswa.Post(
+		"/:id/pulihkan",
+		middleware.HanyaPeran("admin"),
+		handler.PulihkanMahasiswa,
+	)
 
-	// Grup endpoint mata kuliah yang dilindungi API Key
-	matakuliah := app.Group("/api/matakuliah", middleware.KunciApi())
+	// =====================================================
+	// ENDPOINT MATA KULIAH
+	// =====================================================
+
+	// Tetap menggunakan middleware API Key
+	matakuliah := app.Group(
+		"/api/matakuliah",
+		middleware.KunciApi(),
+	)
 
 	// Endpoint daftar mata kuliah
 	matakuliah.Get("/", handler.DaftarMatakuliah)
@@ -55,13 +108,23 @@ func SetupRoutes(app *fiber.App) {
 	// Endpoint menghapus mata kuliah
 	matakuliah.Delete("/:id", handler.HapusMatakuliah)
 
-	// Grup endpoint program studi yang dilindungi API Key
-	programStudi := app.Group("/api/program-studi", middleware.KunciApi())
+	// =====================================================
+	// ENDPOINT PROGRAM STUDI
+	// =====================================================
+
+	// Tetap menggunakan middleware API Key
+	programStudi := app.Group(
+		"/api/program-studi",
+		middleware.KunciApi(),
+	)
 
 	// Endpoint daftar program studi beserta jumlah mahasiswa
 	programStudi.Get("/", handler.DaftarProgramStudi)
 
-	// Catch-all untuk endpoint yang tidak ditemukan
+	// =====================================================
+	// PENANGANAN ENDPOINT TIDAK DITEMUKAN
+	// =====================================================
+
 	app.Use(func(c fiber.Ctx) error {
 		return fiber.NewError(
 			fiber.StatusNotFound,

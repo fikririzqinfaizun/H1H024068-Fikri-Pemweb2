@@ -9,6 +9,7 @@ import (
 
 	"latihan-fiber/internal/model"
 	"latihan-fiber/internal/repository"
+	"latihan-fiber/internal/validasi"
 )
 
 func DaftarMahasiswa(c fiber.Ctx) error {
@@ -90,6 +91,7 @@ func DetailMahasiswa(c fiber.Ctx) error {
 func BuatMahasiswa(c fiber.Ctx) error {
 	var permintaan PermintaanMahasiswa
 
+	// Mengambil data dari request body
 	err := c.Bind().Body(&permintaan)
 	if err != nil {
 		return fiber.NewError(
@@ -98,11 +100,23 @@ func BuatMahasiswa(c fiber.Ctx) error {
 		)
 	}
 
+	// Memeriksa validasi data mahasiswa
+	galat := validasi.Periksa(permintaan)
+	if galat != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"sukses": false,
+			"pesan":  "Data yang dikirim tidak valid",
+			"galat":  galat,
+		})
+	}
+
+	// Menentukan status aktif secara default
 	aktif := true
 	if permintaan.Aktif != nil {
 		aktif = *permintaan.Aktif
 	}
 
+	// Membuat objek mahasiswa
 	mahasiswa := model.Mahasiswa{
 		ProgramStudiID: permintaan.ProgramStudiID,
 		Nim:            permintaan.Nim,
@@ -113,6 +127,7 @@ func BuatMahasiswa(c fiber.Ctx) error {
 		Aktif:          aktif,
 	}
 
+	// Menyimpan data mahasiswa ke database
 	err = repository.Simpan(&mahasiswa)
 	if err != nil {
 		return fiber.NewError(
